@@ -1,0 +1,248 @@
+--Scripted by TimesIllsuion on 9/11/21
+--A quick and dirty Tooltip module for use in Super Slayers because I don't want to write anything more modular
+--Feel free to fork as you wish
+
+local ToolTip = {}
+
+local PlayerService = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+
+if not script:FindFirstChild("Templates") then
+	local T = Instance.new("Folder")
+	T.Name = "Templates"
+	T.Parent = script
+end
+
+local TEMPLATES = script.Templates -- Config for templates location, can be preconfigured objects or simple templates to build from
+
+local DEFAULT_INFO = {
+	BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+	Size = UDim2.fromScale(.153, .209),
+	CreateOutline = true,
+	OutlineColor3 = Color3.fromRGB(75, 150, 207),
+	OutlineWidth = 6,
+	CreateUICorner = true,
+	UICornerRadius = UDim.new(.15, 0)
+}
+
+local DEFAULT_TEXTBOXINFO = {
+	BackgroundTransparency = 1,
+	Size = UDim2.new(.729, 0, -.255, 40),
+	Font = Enum.Font.FredokaOne,
+	TextScaled = true,
+	TextColor3 = Color3.fromRGB(81, 148, 247)
+}
+
+ToolTip.__index = ToolTip
+
+local function CreateDefaultTooltip()
+	local Default = Instance.new("Frame")
+	Default.Name = "Default"
+	Default.Size = DEFAULT_INFO.Size
+	Default.ZIndex = 2
+	Default.BackgroundColor3 = DEFAULT_INFO.BackgroundColor3
+	Default.Parent = script
+	
+	if DEFAULT_INFO.CreateUICorner == true then
+		local UICorner = Instance.new("UICorner")
+		UICorner.CornerRadius = DEFAULT_INFO.UICornerRadius
+		UICorner.Parent = Default
+	end
+	
+	if DEFAULT_INFO.CreateOutline == true then
+		local Outline = Default:Clone()
+		Outline.AnchorPoint = Vector2.new(.5, .5)
+		Outline.Position = UDim2.fromScale(.5, .5)
+		Outline.Size = UDim2.new(1, DEFAULT_INFO.OutlineWidth, 1, DEFAULT_INFO.OutlineWidth)
+		Outline.BackgroundColor3 = DEFAULT_INFO.OutlineColor3
+		Outline.ZIndex = 1
+		Outline.Parent = Default
+	end
+	
+	local Contents = Instance.new("Frame")
+	Contents.Name = "Contents"
+	Contents.BackgroundTransparency = 1
+	Contents.AnchorPoint = Vector2.new(.5, 0)
+	Contents.Size = UDim2.fromScale(.988, .237)
+	Contents.Position = UDim2.fromScale(.496, .075)
+	Contents.Parent = Default
+	
+	local UIListLayout = Instance.new("UIListLayout")
+	UIListLayout.FillDirection = Enum.FillDirection.Vertical
+	UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+	UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	UIListLayout.Padding = UDim.new(0, 5)
+	UIListLayout.Parent = Contents
+end
+
+local function CreateDefaultText()
+	local DefaultText = Instance.new("TextLabel")
+	DefaultText.Name = "Default"
+	DefaultText.Parent = TEMPLATES
+	DefaultText.BackgroundTransparency = DEFAULT_TEXTBOXINFO.BackgroundTransparency
+	DefaultText.TextScaled = DEFAULT_TEXTBOXINFO.TextScaled
+	DefaultText.Font = DEFAULT_TEXTBOXINFO.Font
+	DefaultText.TextColor3 = DEFAULT_TEXTBOXINFO.TextColor3
+	DefaultText.ZIndex = 3
+end
+
+function ToolTip.new(TargetGui, GuiType, Offset, ...)
+	local Gui = {}
+	
+	local VariadicArgs = {...}
+	
+	if GuiType == "Default" and script:FindFirstChild(GuiType) == nil then
+		CreateDefaultTooltip()
+	end
+	
+	Gui.Gui = script:FindFirstChild(GuiType):Clone()
+	Gui.Player = PlayerService.LocalPlayer
+	Gui.MainLayout = Gui.Gui.Contents:WaitForChild("UIListLayout")
+	Gui.Offset = Offset
+	
+	if not Gui.Player:WaitForChild("PlayerGui"):FindFirstChild("ToolTips") then
+		local ToolTips = Instance.new("ScreenGui")
+		ToolTips.Name = "ToolTips"
+		ToolTips.IgnoreGuiInset = true
+		ToolTips.Parent = Gui.Player.PlayerGui
+		
+		for _, v in pairs(Gui.Player.PlayerGui:GetChildren()) do
+			if v.DisplayOrder >= ToolTips.DisplayOrder then
+				ToolTips.DisplayOrder = v.DisplayOrder + 1
+			end
+		end
+	end
+	
+	for index, v in ipairs(VariadicArgs) do
+		if v["Template"] ~= nil then
+			local Target
+			
+			if v["Template"] == "Default" and TEMPLATES:FindFirstChild("Default") == nil then
+				CreateDefaultText()
+			end
+			
+			Target = TEMPLATES:FindFirstChild(v["Template"])
+			
+			if Target then
+				local NewTemplate = Target:Clone()
+			
+				NewTemplate.Name = v["Name"]
+				NewTemplate.LayoutOrder = index
+				
+				if v["Text"] ~= nil then
+					NewTemplate.Text = v["Text"]
+				end
+				
+				if v["RichText"] ~= nil then
+					NewTemplate.RichText = true
+				end
+				
+				if v["Size"] ~= nil then
+					NewTemplate.Size = v["Size"]
+				end
+				
+				if v["TextColor"] ~= nil then
+					NewTemplate.TextColor3 = v["TextColor"]
+				end
+				
+				if v["BackgroundColor"] ~= nil then
+					NewTemplate.BackgroundColor3 = v["BackgroundColor"]
+				end
+				
+				if v["Transparency"] ~= nil then
+					NewTemplate.BackgroundTransparency = v["Transparency"]
+				end
+				
+				if v["Parent"] ~= nil then
+					if #v["Parent"] == 1 then
+						NewTemplate.Parent = Gui.Gui:FindFirstChild(v["Parent"][1])
+					else
+						local path = Gui.Gui
+						
+						for __, nextlook in ipairs(v["Parent"]) do
+							if path:FindFirstChild(nextlook) then
+								path = path:FindFirstChild(nextlook)
+							end
+						end
+						
+						if path then
+							NewTemplate.Parent = path
+						else
+							warn("Path is nil")
+						end
+					end
+				end
+			else
+				warn("Template Not Found")
+			end
+		end
+	end
+	
+	setmetatable(Gui, ToolTip)
+	
+	Gui._MoveConnection = TargetGui.MouseMoved:Connect(function() Gui:Show() end)
+	Gui._LeaveConnection = TargetGui.MouseLeave:Connect(function() Gui:Hide() end)
+	
+	return Gui
+end
+
+function ToolTip:SetText(Field, Text)
+	local Frame = self.Gui
+	
+	if Frame then
+		local Label = Frame:FindFirstChild(Field, true)
+		if Label then
+			Label.Text = Text
+		end
+	end
+end
+
+function ToolTip:SetFieldColor(Field, Color)
+	local Frame = self.Gui
+	
+	if Frame then
+		local Label = Frame:FindFirstChild(Field, true)
+		
+		if Label then
+			Label.TextColor3 = Color
+		end
+	end
+end
+
+function ToolTip:Show()
+	local mp = UserInputService:GetMouseLocation()
+	local vp = workspace.CurrentCamera.ViewportSize
+
+	local playerGui = self.Player:FindFirstChild("PlayerGui")
+
+	local frame = self.Gui
+	frame.Position = UDim2.new(mp.X / vp.X, 0, mp.Y / vp.Y, 0)
+	
+	local contentsize = self.MainLayout.AbsoluteContentSize
+	frame.Size = UDim2.new(frame.Size.X.Scale, 0, 0, contentsize.Y + self.Offset)
+	
+	frame.Visible = true
+	self.Gui.Parent = playerGui.ToolTips
+
+	return self
+end
+
+function ToolTip:Hide()
+	if self.Gui then
+		self.Gui.Visible = false
+		self.Parent = nil
+	end
+end
+
+function ToolTip:Remove()
+	if self.Gui then
+		if self._MoveConnection then self._MoveConnection:Disconnect() end
+		if self._LeaveConnection then self._LeaveConnection:Disconnect() end
+		self.Gui:Destroy()
+		table.clear(self)
+		return nil
+	end
+end
+
+return ToolTip
