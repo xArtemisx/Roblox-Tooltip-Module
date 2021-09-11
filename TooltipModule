@@ -108,8 +108,10 @@ function ToolTip.new(TargetGui, GuiType, Offset, ...)
 		ToolTips.Parent = Gui.Player.PlayerGui
 		
 		for _, v in pairs(Gui.Player.PlayerGui:GetChildren()) do
-			if v.DisplayOrder >= ToolTips.DisplayOrder then
-				ToolTips.DisplayOrder = v.DisplayOrder + 1
+			if v:IsA("ScreenGui") then
+				if v.DisplayOrder >= ToolTips.DisplayOrder then
+					ToolTips.DisplayOrder = v.DisplayOrder + 1
+				end
 			end
 		end
 	end
