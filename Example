@@ -1,0 +1,81 @@
+This is the code used to achieve the demonstrated tooltips. It is created using preconfigured template texlabels, however it could be created from the module itself as well
+by providing the correct info.
+
+local ToolTip = require(game.ReplicatedStorage.ToolTipModule)
+
+local ToolTips = {}
+ToolTips[1] = ToolTip.new(script.Parent.Frame1, "Default", 24,
+	{
+		["Template"]  = "SwordName";
+		["Name"] = "SwordName";
+		["Text"] = "Lava Sword";
+		["Parent"] = {"Contents"};
+	},
+
+	{
+		["Template"]  =  "NickName";
+		["Name"] = "NickName";
+		["Text"] = "The Reaper";
+		["Parent"] = {"Contents"};
+	},
+
+	{
+		["Template"]  = "Equipped";
+		["Name"] = "Equipped";
+		["Parent"] = {"Contents"};
+	},
+
+	{
+		["Template"]  = "Rarity";
+		["Name"] = "Rarity";
+		["Parent"] = {"Contents"};
+	}	
+)
+
+ToolTips[2] = ToolTip.new(script.Parent.Frame2, "Default", 24,
+	{
+		["Template"]  = "SwordName";
+		["Name"] = "SwordName";
+		["Text"] = "Water Sword";
+		["Parent"] = {"Contents"};
+	},
+
+	{
+		["Template"]  =  "NickName";
+		["Name"] = "NickName";
+		["Text"] = "The Scythe";
+		["Parent"] = {"Contents"};
+	},
+
+	{
+		["Template"]  = "Equipped";
+		["Name"] = "Equipped";
+		["Parent"] = {"Contents"};
+	},
+
+	{
+		["Template"]  = "Rarity";
+		["Name"] = "Rarity";
+		["Parent"] = {"Contents"};
+		["Text"] = "Basic";
+		["BackgroundColor"] = Color3.fromRGB(112, 112, 112);
+	},
+	
+	{
+		["Template"]  = "EnchantsFrame";
+		["Name"] = "EnchantsFrame";
+		["Parent"] = {"Contents"};
+	},
+	
+	{
+		["Template"]  = "Enchant";
+		["Name"] = "Enchant1";
+		["Parent"] = {"Contents", "EnchantsFrame"};
+	},
+	
+	{
+		["Template"]  = "Enchant";
+		["Name"] = "Enchant2";
+		["Parent"] = {"Contents", "EnchantsFrame"};
+	}
+)
